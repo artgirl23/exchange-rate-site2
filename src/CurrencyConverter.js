@@ -1,24 +1,31 @@
 import React from 'react';
+import Chart from 'chart.js/auto';
 import currencies from './utils/currencies';
 import { checkStatus, json } from './utils/fetchUtils';
 
 class CurrencyConverter extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      rate: 109.55,
-      baseAcronym: 'USD',
-      baseValue: 1,
-      quoteAcronym: 'JPY',
-      quoteValue: 1 * 109.55,
-      loading: false,
-    };
-  }
+    constructor(props) {
+      super(props);
+      const params = new URLSearchParams(props.location.search);
+      console.log(params.get('base'), params.get('quote'));
+      this.state = {
+        rate: 0,
+        baseAcronym: params.get('base') || 'USD',
+        baseValue: 0,
+        quoteAcronym: params.get('quote') || 'JPY',
+        quoteValue: 0,
+        loading: false,
+      };
+      this.chartRef = React.createRef();
+    }
+  
 
-  componentDidMount() {
-    const { baseAcronym, quoteAcronym } = this.state;
-    this.getRate(baseAcronym, quoteAcronym);
-  }
+    componentDidMount() {
+        const { baseAcronym, quoteAcronym } = this.state;
+        this.getRate(baseAcronym, quoteAcronym);
+        this.getHistoricalRates(baseAcronym, quoteAcronym);
+      }
+
   getRate = (base, quote) => {
     this.setState({ loading: true });
     fetch(`https://altexchangerateapi.herokuapp.com/latest?from=${base}&to=${quote}`)
@@ -37,6 +44,52 @@ class CurrencyConverter extends React.Component {
         });
       })
       .catch(error => console.error(error.message));
+  }
+
+  getHistoricalRates = (base, quote) => {
+    const endDate = new Date().toISOString().split('T')[0];
+    const startDate = new Date((new Date).getTime() - (30 * 24 * 60 * 60 * 1000)).toISOString().split('T')[0];
+
+    fetch(`https://altexchangerateapi.herokuapp.com/${startDate}..${endDate}?from=${base}&to=${quote}`)
+      .then(checkStatus)
+      .then(json)
+      .then(data => {
+        if (data.error) {
+          throw new Error(data.error);
+        }
+
+        const chartLabels = Object.keys(data.rates);
+        const chartData = Object.values(data.rates).map(rate => rate[quote]);
+        const chartLabel = `${base}/${quote}`;
+        this.buildChart(chartLabels, chartData, chartLabel);
+      })
+      .catch(error => console.error(error.message));
+  }
+
+  buildChart = (labels, data, label) => {
+    const chartRef = this.chartRef.current.getContext("2d");
+
+    if (typeof this.chart !== "undefined") {
+      this.chart.destroy();
+    }
+
+    this.chart = new Chart(this.chartRef.current.getContext("2d"), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: label,
+            data,
+            fill: false,
+            tension: 0,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+      }
+    })
   }
 
 
@@ -60,7 +113,9 @@ class CurrencyConverter extends React.Component {
     const baseAcronym = event.target.value;
     this.setState({ baseAcronym });
     this.getRate(baseAcronym, this.state.quoteAcronym);
+    this.getHistoricalRates(baseAcronym, this.state.quoteAcronym);
   }
+
 
   changeBaseValue = (event) => {
     const quoteValue = this.convert(event.target.value, this.state.rate, this.toQuote);
@@ -74,6 +129,7 @@ class CurrencyConverter extends React.Component {
     const quoteAcronym = event.target.value;
     this.setState({ quoteAcronym });
     this.getRate(this.state.baseAcronym, quoteAcronym);
+    this.getHistoricalRates(this.state.baseAcronym, quoteAcronym);
   }
 
   changeQuoteValue = (event) => {
@@ -84,6 +140,7 @@ class CurrencyConverter extends React.Component {
     });
   }
 
+   
   render() {
     const { rate, baseAcronym, baseValue, quoteAcronym, quoteValue, loading } = this.state;
 
@@ -124,6 +181,7 @@ class CurrencyConverter extends React.Component {
             <small className="text-secondary">{currencies[quoteAcronym].name}</small>
           </div>
         </form>
+        <canvas ref={this.chartRef} />
       </React.Fragment>
     )
   }

@@ -3,18 +3,61 @@ import React from 'react';
 const Layout = (props) => {
   return (
     <React.Fragment>
-      <nav className="navbar navbar-light bg-light">
-        <span className="navbar-brand mb-0 h1">Currency Exchange Rates</span>
+      <div class="navbar clearfix">
+        <div class="navbar-inner">
+          <div class="wrapper clearfix">
+    <div id="headerTri"></div>
+      <a class="navtoggle" id="navtoggle">
+        <div class="nav-icon"></div>
+      </a>
+      <nav class="nav-collapse">
+        <ul class="nav">
+          <li class="selected">
+            <a href="/" rel="homepage">Home</a>
+          </li>
+          <li>
+          <a href="/currencyconverter" rel="currencyconverter">CurrencyConverter</a>
+          </li>
+
+
+
+        </ul>
+       
       </nav>
+      </div>
+      </div>
+      </div>
       <div className="container py-3">
         {props.children}
       </div>
       <footer className="p-3 bg-light">
-        <div className="mb-2">
-          <a className="badge badge-dark" href="https://github.com/Altcademy/exchange-rate-site" target="_blank">GitHub</a>
-        </div>
-        <div>
-          <span className="mr-3 text-secondary">Built by <a href="https://www.altcademy.com" target="_blank">Altcademy</a> with ☕ and 💜</span>
+        <div class="navbar clearfix">
+          <div class="navbar-inner">
+            <div class="wrapper clearfix">
+              <nav class="nav-collapse">
+                <ul class="nav">
+                  <li>
+                  <a href="/" rel="homepage">Terms of Service</a>
+                  </li>
+                  <li>
+                  <a href="/" rel="homepage">Privacy</a>
+                  </li>
+                  <li>
+                  <a href="/" rel="homepage">Cookie Policy</a>
+                  </li>
+                  <li>
+                  <a href="/" rel="homepage">Advertise</a>
+                  </li>
+                  <li>
+                  <a href="/" rel="homepage">Feedback</a>
+                  </li>
+                  <li>
+                  <a href="/" rel="homepage">FAQ</a>
+                  </li>
+                </ul>
+              </nav>
+              </div>
+          </div>
         </div>
       </footer>
     </React.Fragment>
